@@ -1,5 +1,5 @@
 # FastQ - Smart Queue Management System 🚀
-Live Link - https://fastq-ichy73kkw-aakarsh12xs-projects.vercel.app/
+Live Link - 
 .
 <img width="1896" height="893" alt="image" src="https://github.com/user-attachments/assets/c5d2539e-a70c-4aac-a0ae-67f8809beabc" />
 
@@ -256,8 +256,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Aakarsh Shrey**
-- GitHub: [@aakarsh12x](https://github.com/aakarsh12x)
+**08riya**
+- GitHub: [@08riya](https://github.com/08riya)
 
 ## 🙏 Acknowledgments
 
@@ -271,7 +271,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-Made with ❤️ by Aakarsh
+
 
 ⭐ Star this repository if you find it helpful!
 </div>
