@@ -1,6 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Clock, Users, MapPin, Phone, Star, MoreVertical } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface JoinedQueue {
   id: string;
@@ -16,32 +20,86 @@ interface JoinedQueue {
 }
 
 export default function MyQueuesPage() {
-  // Mock data for joined queues
-  const joinedQueues: JoinedQueue[] = [
-    {
-      id: '1',
-      name: 'Cafeteria Main Counter',
-      location: 'Building A, Ground Floor',
-      category: 'Food',
-      position: 3,
-      totalPeople: 12,
-      estimatedWait: '15 min',
-      status: 'waiting',
-      joinedAt: '2024-01-15 10:30',
-      rating: 4
-    },
-    {
-      id: '2',
-      name: 'Student Services',
-      location: 'Administrative Building',
-      category: 'Admin',
-      position: 1,
-      totalPeople: 5,
-      estimatedWait: '5 min',
-      status: 'waiting',
-      joinedAt: '2024-01-15 11:15'
+  const router = useRouter();
+  const [joinedQueues, setJoinedQueues] = useState<JoinedQueue[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMyQueues = async () => {
+      try {
+        setLoading(true);
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (!token) {
+          router.push('/');
+          return;
+        }
+
+        const res = await fetch(`${API_URL}/users/my-queues`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (res.status === 401) {
+          router.push('/');
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to fetch queues');
+        }
+
+        const mappedQueues: JoinedQueue[] = data.data.map((q: any) => ({
+          id: q._id,
+          name: q.name,
+          location: q.location,
+          category: q.category.charAt(0).toUpperCase() + q.category.slice(1),
+          position: q.userPosition,
+          totalPeople: q.currentUsers ? q.currentUsers.filter((u: any) => u.status === 'waiting').length : 0,
+          estimatedWait: `${Math.round(q.estimatedWaitTime)} min`,
+          status: 'waiting', // The API returns queues where user is waiting
+          joinedAt: q.joinedAt,
+          rating: q.rating?.average
+        }));
+
+        setJoinedQueues(mappedQueues);
+      } catch (err: any) {
+        console.error('Error fetching queues:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMyQueues();
+  }, [router]);
+
+  const leaveQueue = async (queueId: string) => {
+    if (!confirm('Are you sure you want to leave this queue?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/queues/${queueId}/leave`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setJoinedQueues(prev => prev.filter(q => q.id !== queueId));
+      } else {
+        alert(data.error || 'Failed to leave queue');
+      }
+    } catch (error) {
+      console.error('Error leaving queue:', error);
+      alert('Something went wrong');
     }
-  ];
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -53,13 +111,22 @@ export default function MyQueuesPage() {
   };
 
   const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'Food': return 'text-orange-400 bg-orange-400/10';
-      case 'Medical': return 'text-red-400 bg-red-400/10';
-      case 'Admin': return 'text-blue-400 bg-blue-400/10';
+    const cat = category.toLowerCase();
+    switch (cat) {
+      case 'food': return 'text-orange-400 bg-orange-400/10';
+      case 'medical': return 'text-red-400 bg-red-400/10';
+      case 'admin': return 'text-blue-400 bg-blue-400/10';
       default: return 'text-gray-400 bg-gray-400/10';
     }
   };
+
+  if (loading) {
+    return <div className="text-center text-gray-400 py-12">Loading your queues...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-red-400 py-12">{error}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -75,7 +142,10 @@ export default function MyQueuesPage() {
           <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-300 mb-2">No Active Queues</h3>
           <p className="text-gray-400 mb-6">You haven't joined any queues yet. Browse available queues to get started!</p>
-          <button className="bg-gradient-to-r from-sky-600 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-sky-700 hover:to-blue-700 transition-all">
+          <button
+            onClick={() => router.push('/user-dashboard/join')}
+            className="bg-gradient-to-r from-sky-600 to-blue-600 text-white px-6 py-2 rounded-lg hover:from-sky-700 hover:to-blue-700 transition-all"
+          >
             Browse Queues
           </button>
         </div>
@@ -99,12 +169,10 @@ export default function MyQueuesPage() {
                     {queue.location}
                   </div>
                   <div className="text-xs text-gray-500">
-                    Joined: {new Date(queue.joinedAt).toLocaleString()}
+                    Joined: <span suppressHydrationWarning>{new Date(queue.joinedAt).toLocaleString()}</span>
                   </div>
                 </div>
-                <button className="text-gray-400 hover:text-gray-300">
-                  <MoreVertical className="w-5 h-5" />
-                </button>
+                {/* Removed MoreVertical button as it was non-functional */}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -124,11 +192,11 @@ export default function MyQueuesPage() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <button className="bg-red-600/20 text-red-400 px-4 py-2 rounded-lg hover:bg-red-600/30 transition-all text-sm">
+                  <button
+                    onClick={() => leaveQueue(queue.id)}
+                    className="bg-red-600/20 text-red-400 px-4 py-2 rounded-lg hover:bg-red-600/30 transition-all text-sm"
+                  >
                     Leave Queue
-                  </button>
-                  <button className="bg-gray-700/50 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-700 transition-all text-sm">
-                    View Details
                   </button>
                 </div>
                 {queue.rating && (
@@ -143,33 +211,7 @@ export default function MyQueuesPage() {
         </div>
       )}
 
-      {/* Recent Activity */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">Recent Activity</h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between py-2">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-gray-300 text-sm">Joined Cafeteria Main Counter</span>
-            </div>
-            <span className="text-gray-500 text-xs">2 hours ago</span>
-          </div>
-          <div className="flex items-center justify-between py-2">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span className="text-gray-300 text-sm">Completed Library Services queue</span>
-            </div>
-            <span className="text-gray-500 text-xs">Yesterday</span>
-          </div>
-          <div className="flex items-center justify-between py-2">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-              <span className="text-gray-300 text-sm">Rated Medical Center 5 stars</span>
-            </div>
-            <span className="text-gray-500 text-xs">2 days ago</span>
-          </div>
-        </div>
-      </div>
+      {/* Removed Static Recent Activity Section for now as we focused on Active Queues */}
     </div>
   );
 }

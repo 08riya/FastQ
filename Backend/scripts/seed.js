@@ -27,19 +27,32 @@ async function reset() {
 
 async function seed() {
   // Users - let the User model handle password hashing
-  const admin = await User.create({
-    name: 'Seed Admin',
-    email: `admin_seed@fastq.dev`,
-    password: 'admin123',
-    role: 'admin',
-  });
+  // Users - Find or Create
+  let admin = await User.findOne({ email: 'admin_seed@fastq.dev' });
+  if (!admin) {
+    admin = await User.create({
+      name: 'Seed Admin',
+      email: 'admin_seed@fastq.dev',
+      password: 'admin123',
+      role: 'admin',
+    });
+    console.log('Created admin user');
+  } else {
+    console.log('Admin user already exists');
+  }
 
-  const user = await User.create({
-    name: 'Seed User',
-    email: `user_seed@fastq.dev`,
-    password: 'password123',
-    role: 'user',
-  });
+  let user = await User.findOne({ email: 'user_seed@fastq.dev' });
+  if (!user) {
+    user = await User.create({
+      name: 'Seed User',
+      email: 'user_seed@fastq.dev',
+      password: 'password123',
+      role: 'user',
+    });
+    console.log('Created standard user');
+  } else {
+    console.log('Standard user already exists');
+  }
 
   // Queues (idempotent upsert on name)
   const queueItems = [

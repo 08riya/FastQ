@@ -79,7 +79,7 @@ export default function JoinQueuesPage() {
         return;
       }
       if (!res.ok || data.success === false) throw new Error(data?.error || 'Join failed');
-      alert('Joined queue successfully');
+      router.push('/user-dashboard/my-queues');
     } catch (e: any) {
       alert(e.message || 'Join failed');
     }

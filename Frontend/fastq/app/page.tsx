@@ -103,16 +103,16 @@ export default function Home() {
                 <CheckCircle className="w-4 h-4" />
                 <span>Smart Queue Management</span>
               </div>
-              
+
               <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-6">
                 Skip the wait,{' '}
                 <span className="bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
                   not the line
                 </span>{' '}with <span className="logo-font">fastq</span>
               </h1>
-              
+
               <p className="text-xl text-gray-300 mb-8">
-                Real-time queue management for canteens, hospitals, and offices. 
+                Real-time queue management for canteens, hospitals, and offices.
                 Join virtual queues, track your position, and get notified when it's your turn.
               </p>
             </div>
@@ -128,7 +128,7 @@ export default function Home() {
                   <p className="text-sm text-gray-400">Join from anywhere</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-900/30 rounded-lg flex items-center justify-center">
                   <Clock className="w-5 h-5 text-sky-400" />
@@ -138,7 +138,7 @@ export default function Home() {
                   <p className="text-sm text-gray-400">Live position tracking</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-900/30 rounded-lg flex items-center justify-center">
                   <BarChart3 className="w-5 h-5 text-blue-400" />
@@ -148,7 +148,7 @@ export default function Home() {
                   <p className="text-sm text-gray-400">Queue insights</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-orange-900/30 rounded-lg flex items-center justify-center">
                   <CheckCircle className="w-5 h-5 text-orange-400" />
@@ -170,22 +170,20 @@ export default function Home() {
               <div className="flex bg-slate-800 rounded-lg p-1 mb-4">
                 <button
                   onClick={() => setUserType('user')}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                    userType === 'user'
-                      ? 'bg-slate-700 text-sky-300 shadow-sm'
-                      : 'text-gray-400'
-                  }`}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${userType === 'user'
+                    ? 'bg-slate-700 text-sky-300 shadow-sm'
+                    : 'text-gray-400'
+                    }`}
                 >
                   <User className="w-4 h-4 inline mr-2" />
                   User
                 </button>
                 <button
                   onClick={() => setUserType('admin')}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                    userType === 'admin'
-                      ? 'bg-slate-700 text-sky-300 shadow-sm'
-                      : 'text-gray-400'
-                  }`}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${userType === 'admin'
+                    ? 'bg-slate-700 text-sky-300 shadow-sm'
+                    : 'text-gray-400'
+                    }`}
                 >
                   <BarChart3 className="w-4 h-4 inline mr-2" />
                   Admin
@@ -197,8 +195,8 @@ export default function Home() {
                   {isLogin ? 'Welcome back' : 'Get started'}
                 </h2>
                 <p className="text-gray-400">
-                  {isLogin 
-                    ? `Sign in to your ${userType} account` 
+                  {isLogin
+                    ? `Sign in to your ${userType} account`
                     : `Create your ${userType} account`
                   }
                 </p>
@@ -216,7 +214,10 @@ export default function Home() {
                         type="text"
                         placeholder="Enter your full name"
                         value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
+                        onChange={(e) => {
+                          setFullName(e.target.value);
+                          if (error) setError(null);
+                        }}
                         required
                         minLength={2}
                         maxLength={50}
@@ -236,7 +237,10 @@ export default function Home() {
                       type="email"
                       placeholder="Enter your email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (error) setError(null);
+                      }}
                       className="w-full pl-10 pr-4 py-2.5 border border-slate-700 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-slate-800 text-white transition-colors"
                       required
                     />
@@ -253,7 +257,10 @@ export default function Home() {
                       type="password"
                       placeholder="Enter your password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (error) setError(null);
+                      }}
                       className="w-full pl-10 pr-4 py-2.5 border border-slate-700 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-slate-800 text-white transition-colors"
                       required
                     />
@@ -286,22 +293,25 @@ export default function Home() {
               </form>
 
               <div className="mt-6 text-center">
-                <p className="text-gray-400">
+                <div className="text-gray-400">
                   {isLogin ? "Don't have an account?" : 'Already have an account?'}
                   <button
-                    onClick={() => setIsLogin(!isLogin)}
+                    onClick={() => {
+                      setIsLogin(!isLogin);
+                      setError(null);
+                    }}
                     className="ml-1 text-sky-400 hover:text-sky-300 font-medium"
                   >
                     {isLogin ? 'Sign up' : 'Sign in'}
                   </button>
-                </p>
+                </div>
               </div>
 
               {/* Demo credentials removed */}
             </div>
           </div>
         </div>
-    </div>
+      </div>
     </WavyBackground>
   );
 }
